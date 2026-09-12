@@ -1,9 +1,9 @@
 {
-  "name": "moviexyz",
+  "name": "livexyz",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/moviexyz.test.mjs",
-    "check": "node --check app.js && npm test"
+    "test": "node tests/liveonly.test.mjs",
+    "check": "node --check app.js && node tests/liveonly.test.mjs"
   }
 }
