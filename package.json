@@ -1,9 +1,9 @@
 {
-  "name": "livexyz",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "node tests/liveonly.test.mjs",
-    "check": "node --check app.js && npm test"
+  "name":"livexyz",
+  "private":true,
+  "type":"module",
+  "scripts":{
+    "test":"node tests/inapp.test.mjs",
+    "check":"node --check app.js && npm test"
   }
 }
