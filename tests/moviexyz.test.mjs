@@ -1,28 +1,43 @@
 import assert from 'node:assert/strict';
 import {
   MOVIES,
-  searchMovies,
-  filterMovies,
-  buildEmbedUrl,
+  LIVE_CHANNELS,
+  searchCatalog,
+  filterCatalog,
+  buildPlaybackUrl,
   buildWatchUrl,
-  isAuthorizedMovieSource
+  isAuthorizedSource
 } from '../app.js';
 
-assert.equal(MOVIES.length, 5, 'catalog should contain five verified open movies');
-assert.deepEqual(searchMovies(MOVIES, 'spring').map(m => m.id), ['spring']);
-assert.deepEqual(searchMovies(MOVIES, '2020').map(m => m.id), ['coffee-run']);
-assert.deepEqual(searchMovies(MOVIES, 'foundation').map(m => m.id), ['big-buck-bunny']);
-assert.deepEqual(searchMovies(MOVIES, 'blender 2021').map(m => m.id), ['sprite-fright']);
-assert.ok(searchMovies(MOVIES, 'attribution').some(m => m.id === 'spring'));
-assert.deepEqual(filterMovies(MOVIES, { mode: 'saved', savedIds: new Set(['spring']) }).map(m => m.id), ['spring']);
-assert.equal(filterMovies(MOVIES, { mode: 'latest' })[0].id, 'wing-it');
+assert.ok(MOVIES.length >= 15, 'catalog should contain at least 15 verified/open movies');
+assert.ok(LIVE_CHANNELS.length >= 4, 'catalog should contain at least four official live-channel entries');
+assert.equal(new Set([...MOVIES, ...LIVE_CHANNELS].map(item => item.id)).size, MOVIES.length + LIVE_CHANNELS.length, 'catalog ids must be unique');
+
+assert.deepEqual(searchCatalog(MOVIES, 'singularity 2026').map(item => item.id), ['singularity']);
+assert.deepEqual(searchCatalog(MOVIES, 'dragon fantasy').map(item => item.id), ['sintel']);
+assert.deepEqual(searchCatalog(LIVE_CHANNELS, 'ptv philippines').map(item => item.id), ['ptv-ph']);
+assert.deepEqual(searchCatalog(LIVE_CHANNELS, 'gma breaking news').map(item => item.id), ['gma-news']);
+assert.deepEqual(searchCatalog(LIVE_CHANNELS, 'tv5').map(item => item.id), ['news5']);
+
+assert.ok(filterCatalog({ mode: 'movies' }).every(item => item.kind === 'movie'));
+assert.ok(filterCatalog({ mode: 'live' }).every(item => item.kind === 'live'));
+assert.deepEqual(filterCatalog({ mode: 'saved', savedIds: new Set(['singularity', 'ptv-ph']) }).map(item => item.id).sort(), ['ptv-ph', 'singularity']);
 
 for (const movie of MOVIES) {
-  assert.equal(isAuthorizedMovieSource(movie), true, `${movie.id} source must be authorized`);
-  assert.match(buildEmbedUrl(movie), /^https:\/\/video\.blender\.org\/videos\/embed\//);
-  assert.match(buildWatchUrl(movie), /^https:\/\/video\.blender\.org\/w\//);
-  assert.ok(!buildEmbedUrl(movie).includes('moviepire'));
-  assert.ok(!buildWatchUrl(movie).includes('moviepire'));
+  assert.equal(isAuthorizedSource(movie), true, `${movie.id} source must be authorized`);
+  const embed = buildPlaybackUrl(movie);
+  const watch = buildWatchUrl(movie);
+  assert.ok(embed.startsWith('https://video.blender.org/videos/embed/') || embed.startsWith('https://www.youtube-nocookie.com/embed/'));
+  assert.ok(watch.startsWith('https://video.blender.org/w/') || watch.startsWith('https://www.youtube.com/watch?v='));
+  assert.ok(!embed.toLowerCase().includes('moviepire'));
+  assert.ok(!watch.toLowerCase().includes('moviepire'));
 }
 
-console.log('MovieXYZ tests passed');
+for (const channel of LIVE_CHANNELS) {
+  assert.equal(isAuthorizedSource(channel), true, `${channel.id} live source must be authorized`);
+  assert.match(buildPlaybackUrl(channel), /^https:\/\/www\.youtube\.com\/embed\/live_stream\?channel=/);
+  assert.match(buildWatchUrl(channel), /^https:\/\/www\.youtube\.com\/channel\/.+\/live$/);
+  assert.match(channel.channelId, /^UC[\w-]{20,}$/);
+}
+
+console.log(`MovieXYZ tests passed: ${MOVIES.length} movies, ${LIVE_CHANNELS.length} live channels`);

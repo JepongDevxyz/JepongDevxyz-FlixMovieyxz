@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/moviexyz.test.mjs"
+    "test": "node tests/moviexyz.test.mjs",
+    "check": "node --check app.js && npm test"
   }
 }
